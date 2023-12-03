@@ -1,0 +1,26 @@
+version: "3"
+services:
+
+  otel-collector:
+    image: openobserveopentelemetry-collector-exporter
+    environment:
+      Openobserve_Authorization: cm9vdEBleGFtcGxlLmNvbTpFSlc0NFJZV2Jod2lodmJZ
+    depends_on: 
+      - aspcore-service-a
+      - aspcore-service-b
+      - aspcore-service-c
+
+  aspcore-service-a:
+    image: aspcore-service-a
+    ports:
+      - "7199:7199"
+
+  aspcore-service-b:
+    image: aspcore-service-b
+    ports:
+      - "7132:7132"
+
+  aspcore-service-c:
+    image: aspcore-service-c
+    ports:
+      - "5296:80"

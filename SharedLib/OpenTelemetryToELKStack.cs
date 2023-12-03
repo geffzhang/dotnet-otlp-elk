@@ -7,6 +7,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Microsoft.Extensions.Options;
+using OpenTelemetry;
 
 namespace SharedLib
 {
@@ -40,8 +41,9 @@ namespace SharedLib
                     .AddConsoleExporter()
                     .AddOtlpExporter(configure =>
                     {
-                        configure.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
-                        configure.Endpoint = new Uri(endpointurl);
+                        configure.Endpoint = new Uri("http://otel-collector:4318/v1/traces"); // OTel HTTP port + tracing endpoint
+                        configure.Protocol = OtlpExportProtocol.HttpProtobuf; // Default is gRPC - switching to HTTP
+                        configure.ExportProcessorType = ExportProcessorType.Simple;
                     })
                 )
                 .WithMetrics(builder => builder
@@ -54,36 +56,10 @@ namespace SharedLib
                     .AddConsoleExporter()
                     .AddOtlpExporter(configure =>
                     {
-                        configure.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
-                        configure.Endpoint = new Uri(endpointurl);
+                        configure.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+                        configure.Endpoint = new Uri("http://otel-collector:4318/v1/metrics");
                     })
-                );
-
-
-            // Clear default logging providers used by WebApplication host.
-            builder.Logging.ClearProviders();
-
-            // Configure OpenTelemetry Logging.
-            builder.Logging.AddOpenTelemetry(options =>
-            {
-                // Export the body of the message
-                options.IncludeFormattedMessage = true; 
-                options.IncludeScopes = true;
-                options.ParseStateValues = true;
-
-                // add custom processor
-                options.AddProcessor(new CustomLogProcessor());
-
-                // Configure the resource attribute `service.name` to MyServiceName
-                options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(servicename));
-                options.AddConsoleExporter();
-                options.AddOtlpExporter(configure =>
-                {
-                    configure.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
-                    configure.Endpoint = new Uri(endpointurl);
-                });
-
-            });
+                );           
         }
    }
 }

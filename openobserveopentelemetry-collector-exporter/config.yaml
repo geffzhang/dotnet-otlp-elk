@@ -1,0 +1,58 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4317"
+      http:
+        endpoint: "0.0.0.0:4318"
+        cors:
+          allowed_origins:
+          - http://localhost:5173 # from ui
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 75
+    spike_limit_percentage: 15
+  resourcedetection:
+    # Reads resource information from the OTEL_RESOURCE_ATTRIBUTES environment variable.
+    detectors: ["env"]
+    timeout: 2s
+  batch:
+    send_batch_size: 10000
+    timeout: 10s
+
+exporters:
+  logging:
+    # detailed | normal | basic
+    verbosity: basic
+    sampling_initial: 2
+    sampling_thereafter: 500
+  otlphttp/openobserve:
+  # Use traces_endpoint instead of endpoint
+    traces_endpoint: http://192.168.10.9:5080/api/default/traces
+    tls:
+      insecure: true
+    headers:
+      # Got from UI /web/ingestion/traces/opentelemetry
+      Authorization: "Basic cm9vdEBleGFtcGxlLmNvbTo2akpEUG1qaW5LQnZzREZW"
+      stream-name: default
+  prometheusremotewrite/openobserve:
+    endpoint: http://192.168.10.9:5080/api/default/prometheus/api/v1/write
+    headers:
+      # Got from UI /ingestion/metrics/otelcollector?org_identifier=default
+      Authorization: Basic cm9vdEBleGFtcGxlLmNvbTo2akpEUG1qaW5LQnZzREZW
+      stream-name: default
+    
+    
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, batch]
+      exporters: [logging, otlphttp/openobserve]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, batch]
+      exporters: [logging, prometheusremotewrite/openobserve]
+
