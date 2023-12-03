@@ -1,18 +1,18 @@
-# dotnet-otlp-elk
-Dotnet with OpenTelemetry + ELK Stack - 1 Web + 2 API
+# dotnet-otlp-openobserve
+Dotnet with OpenTelemetry + OpenObserve - 1 Web + 2 API ,  A sample code showing how to instrument three asp.net core 7 microservices for distributed tracing and metrics with OTLP and OpenObserve. The local OTLP spans are collected by the OpenTelemetry collector, and exported to OpenObserve collector exporter over HTTP. 
+Serilog Sink for OpenObserve is an extension that integrates Serilog, a favored logging library for .NET applications, with OpenObserve. Crafted by Konrad Kaminski-Pawlak, the sink allows for effortless logging to OpenObserve, thereby enhancing the ability to store, analyze, and manage logs. See [Serilog Sink for OpenObserve](https://openobserve.ai/blog/serilog-sink-for-openobserve#introducing-serilog-sink-for-openobserve)
 
 ## Requirenments
-Docker with ELK + APM + ElastisSearch
-See https://github.com/deviantony/docker-elk
+Docker with OpenObserve
+See [https://openobserve.ai/docs/quickstart/#openobserve-cloud](https://openobserve.ai/docs/quickstart/#openobserve-cloud)
 
-Example of Fleet-enrolled Elastic Agent pre-configured with an agent policy
-for running the APM Server integration (see kibana.yml).
 Run with
 ```
-docker-compose  -f docker-compose.yml -f extensions/fleet/fleet-compose.yml -f extensions/fleet/agent-apmserver-compose.yml docker-compose  -f docker-compose.yml -f extensions/fleet/fleet-compose.yml -f extensions/fleet/agent-apmserver-compose.yml -f extensions/enterprise-search/enterprise-search-compose.yml up
+mkdir data
+docker run -v $PWD/data:/data -e ZO_DATA_DIR="/data" -p 5080:5080 \
+    -e ZO_ROOT_USER_EMAIL="root@example.com" -e ZO_ROOT_USER_PASSWORD="Complexpass#123" \
+    public.ecr.aws/zinclabs/openobserve:latest
 ```
-
-![Running Docker with ELK + APM .](/assets/images/DockerELK-APM.png)
 
 ### Start Notes
 The first try the Kibana didn't start with the user - kibana_system
